@@ -1,17 +1,8 @@
 <template>
-    <div class="container">
-        <form @submit.prevent="login" v-if="isAuthenticated == false">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" v-model="form.email"/>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" v-model="form.password"/>
-            </div>
-
-            <button type="submit" class="btn btn-dark">Login</button>
-        </form>
+    <div class="container" style="margin-top: 50px">
+        <div v-if="!isAuthenticated">
+            <Login/>
+        </div>
         <div v-else>
             <header>
                 <div class="px-3 py-2 bg-dark text-white">
@@ -28,14 +19,13 @@
                                     <router-link to="/products/create" class="nav-link text-white" style="text-decoration: none; color: white;"><svg class="bi d-block mx-auto mb-1" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 9h10V7H7v2Zm11 14q-2.075 0-3.538-1.463T13 18q0-2.075 1.463-3.538T18 13q2.075 0 3.538 1.463T23 18q0 2.075-1.463 3.538T18 23Zm-.5-2h1v-2.5H21v-1h-2.5V15h-1v2.5H15v1h2.5V21ZM3 21V3h18v8.7q-.725-.35-1.463-.525T18 11q-.275 0-.513.013t-.487.062V11H7v2h6.1q-.425.425-.787.925T11.675 15H7v2h4.075q-.05.25-.063.488T11 18q0 .825.15 1.538T11.675 21H3Z"/></svg>Add Product</router-link>
                                 </li>
                                 <li>
-                                    <button type="button" class="btn btn-dark" @click="logout">Logout</button>
+                                    <button type="button" class="btn btn-light" @click="logout">Logout</button>
                                 </li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </header>
-
             <div class="card">
                 <div class="card-body">
                     <div class="container-fluid">
@@ -44,56 +34,36 @@
                 </div>
             </div>
         </div>
-
-
     </div>
-
 </template>
 
 <script>
-import { reactive, inject,ref, onMounted } from 'vue';
-import axios from 'axios';
+import Login from './Login.vue';
+import { inject } from 'vue';
+import { useRouter } from "vue-router";
 export default {
     name: 'App',
+    components: {
+        Login
+    },
     setup(){
+        const router = useRouter();
+        let isAuthenticated = inject('isAuthenticated')
         let cookies = inject('cookies')
-        let isAuthenticated = ref(false)
-        const form = reactive({
-            email:'',
-            password:''
-        });
-
-        const login = async()=>{
-            let res = await axios.post('api/login',form)
-            if(res.data.access_token){
-                cookies.set('access_token',res.data.access_token)
-                isAuthenticated.value = true
-            }
-
-        }
-
-        const checkLogin = ()=>{
-            if(cookies.get('access_token')){
-                isAuthenticated.value = true;
+        const logout = () => {
+            if (cookies.get('access_token')) {
+                cookies.set('access_token', '');
+                isAuthenticated.value = false;
+                router.push("/");
             }
         }
-
-        const logout = () =>{
-            if(cookies.get('access_token')){
-                cookies.set('access_token','')
-                isAuthenticated.value = false
-                this.$router.push("/")
-            }
-        }
-
-        onMounted(checkLogin)
 
         return {
-            form,
-            login,
             isAuthenticated,
             logout
         }
     }
 }
 </script>
+
+
